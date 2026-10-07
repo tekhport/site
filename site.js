@@ -7,10 +7,10 @@
   };
   var LANG = document.documentElement.lang === 'en' ? 'en' : 'ru';
   var I18N = {
-    ru:{pause:'Приостановить видео',play:'Воспроизвести видео',topic:'Тема запроса: ',subject:'Запрос с сайта',n:'Имя',e:'Email',p:'Телефон',
+    ru:{topic:'Тема запроса: ',subject:'Запрос с сайта',n:'Имя',e:'Email',p:'Телефон',
         mailOpened:'Открываем почтовую программу с готовым письмом. Если оно не открылось, напишите на info@tekhport.ru.',
         sending:'Отправляем…',ok:'Спасибо! Запрос отправлен, мы свяжемся с вами.',err:'Не удалось отправить. Напишите нам на'},
-    en:{pause:'Pause video',play:'Play video',topic:'Request topic: ',subject:'Website request',n:'Name',e:'Email',p:'Phone',
+    en:{topic:'Request topic: ',subject:'Website request',n:'Name',e:'Email',p:'Phone',
         mailOpened:'Opening your email app with a ready message. If it did not open, write to info@tekhport.ru.',
         sending:'Sending…',ok:'Thank you! Your request has been sent, we will get back to you.',err:'Could not send. Please write to us at'}
   };
@@ -28,18 +28,18 @@
   }
 
   /* Видео на первом экране (только на главной) */
-  var v=$('heroVideo'), ctl=$('vctl');
-  if(v&&ctl){
+  var v=$('heroVideo');
+  if(v){
     var reduce=window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var tryPlay=function(){ var pr=v.play(); if(pr&&pr.catch){ pr.catch(function(){}); } };
     v.muted=true;
-    v.addEventListener('playing',function(){ v.classList.add('ready'); ctl.hidden=false; ctl.classList.remove('paused'); ctl.setAttribute('aria-label',T.pause); });
-    v.addEventListener('loadeddata',function(){ v.classList.add('ready'); ctl.hidden=false; });
-    if(!reduce){ var pr=v.play(); if(pr&&pr.catch){ pr.catch(function(){ ctl.classList.add('paused'); ctl.setAttribute('aria-label',T.play); }); } }
-    else { v.addEventListener('loadeddata',function(){ ctl.classList.add('paused'); ctl.setAttribute('aria-label',T.play); }); }
-    ctl.addEventListener('click',function(){
-      if(v.paused){ v.play(); ctl.classList.remove('paused'); ctl.setAttribute('aria-label',T.pause); }
-      else { v.pause(); ctl.classList.add('paused'); ctl.setAttribute('aria-label',T.play); }
-    });
+    v.addEventListener('playing',function(){ v.classList.add('ready'); });
+    v.addEventListener('loadeddata',function(){ v.classList.add('ready'); });
+    if(!reduce){
+      tryPlay();
+      /* если браузер заблокировал автозапуск (например, режим энергосбережения), запускаем при первом касании */
+      document.addEventListener('touchstart',function(){ if(v.paused){ tryPlay(); } },{once:true,passive:true});
+    }
   }
 
   /* Тема запроса приходит из ссылки: contacts.html?topic=... */
